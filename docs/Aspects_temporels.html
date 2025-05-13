@@ -1,0 +1,242 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="french" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aspects temporels &mdash; Documentation Pile IgH documentation 1.0.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=fdcf8bf8" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=6831e2e9"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=30646c52"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="prev" title="Écriture d’un code pour la pile EtherCAT Master IgH" href="horloges_distribu%C3%A9es.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Pile IgH documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Sommaire</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="horloges_distribu%C3%A9es.html">Écriture d’un code pour la pile EtherCAT Master IgH</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Aspects temporels</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#profilage-de-linterface-de-programmation-applicative">1. Profilage de l’interface de programmation applicative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mesure-des-cycles-du-bus">2. Mesure des cycles du bus</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#importance-du-cycle-du-bus">Importance du cycle du bus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conclusion-et-seuils-pratiques">Conclusion et seuils pratiques</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Pile IgH documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Aspects temporels</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Aspects_temporels.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aspects-temporels">
+<h1>Aspects temporels<a class="headerlink" href="#aspects-temporels" title="Lien vers cette rubrique"></a></h1>
+<p>Bien que le timing EtherCAT soit hautement déterministe et que par conséquent les problèmes de timing soient rares, il y a quelques aspects qui peuvent (et doivent) être traités.</p>
+<section id="profilage-de-linterface-de-programmation-applicative">
+<h2>1. Profilage de l’interface de programmation applicative<a class="headerlink" href="#profilage-de-linterface-de-programmation-applicative" title="Lien vers cette rubrique"></a></h2>
+<p>Un des aspects de timing les plus important est le temps d’exécution des fonctions de l’API, qui sont appelées dans un contexte cyclique. Ces fonctions prennent une part importante du timing d’ensemble de l’application. Pour mesurer le timing de ces fonctions, le code suivant a été utilisé :</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">c0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cycles</span><span class="p">();</span>
+<span class="n">ecrt_master_receive</span><span class="p">(</span><span class="n">master</span><span class="p">);</span>
+<span class="n">c1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cycles</span><span class="p">();</span>
+<span class="n">ecrt_domain_process</span><span class="p">(</span><span class="n">domain1</span><span class="p">);</span>
+<span class="n">c2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cycles</span><span class="p">();</span>
+<span class="n">ecrt_master_run</span><span class="p">(</span><span class="n">master</span><span class="p">);</span>
+<span class="n">c3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cycles</span><span class="p">();</span>
+<span class="n">ecrt_master_send</span><span class="p">(</span><span class="n">master</span><span class="p">);</span>
+<span class="n">c4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_cycles</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Entre chaque appel d’une fonction de l’API, le compteur d’horodatage d’estampille du microprocesseur est lu. Les différences des compteurs sont converties en µs au moyen de la variable <code class="docutils literal notranslate"><span class="pre">cpu_khz</span></code>, qui contient le nombre d’incréments par ms.</p>
+<p>Pour la mesure réelle, un système avec un microprocesseur à 2.0 GHz a été utilisé pour exécuter le code ci-dessus dans un fil d’exécution RTAI avec une période de 100 µs.
+La mesure a été répétée <em>n = 100</em> fois et les résultats ont été moyennés. Ils sont visibles dans le tableau 8.1.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text"><strong>Tableau 8.1 – Profilage d’un cycle d’application sur un processeur à 2.0 GHz</strong></span><a class="headerlink" href="#id1" title="Lien vers ce tableau"></a></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Élément</p></th>
+<th class="head"><p>Durée moyenne [µs]</p></th>
+<th class="head"><p>Écart-type [µs]</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ecrt_master_receive()</p></td>
+<td><p>8.04</p></td>
+<td><p>0.48</p></td>
+</tr>
+<tr class="row-odd"><td><p>ecrt_domain_process()</p></td>
+<td><p>0.14</p></td>
+<td><p>0.03</p></td>
+</tr>
+<tr class="row-even"><td><p>ecrt_master_run()</p></td>
+<td><p>0.29</p></td>
+<td><p>0.04</p></td>
+</tr>
+<tr class="row-odd"><td><p>ecrt_master_send()</p></td>
+<td><p>2.18</p></td>
+<td><p>0.17</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Cycle complet</strong></p></td>
+<td><p><strong>10.65</strong></p></td>
+<td><p><strong>0.69</strong></p></td>
+</tr>
+</tbody>
+</table>
+<p>Les fonctions qui opèrent uniquement sur les <strong>structures de données internes</strong> du maître, comme <code class="docutils literal notranslate"><span class="pre">ecrt_domain_process()</span></code> ou <code class="docutils literal notranslate"><span class="pre">ecrt_master_run()</span></code>, sont généralement <strong>très rapides</strong> (inférieures à 1 µs).
+Cela s’explique par le fait qu’elles n’ont <strong>pas besoin d’accéder au réseau</strong>, <strong>n’attendent aucune trame</strong>, et <strong>n’interagissent pas avec du matériel externe</strong>.</p>
+<p>Parmi elles, <code class="docutils literal notranslate"><span class="pre">ecrt_domain_process()</span></code> montre une <strong>déviation standard très faible</strong>, ce qui indique une <strong>grande efficacité</strong> et <strong>une exécution régulière</strong>, quasiment constante à chaque cycle.
+En revanche, <code class="docutils literal notranslate"><span class="pre">ecrt_master_run()</span></code>, qui traite la <strong>logique interne basée sur les données reçues</strong>, présente plus de <strong>variabilité temporelle</strong>, car elle dépend fortement <strong>des conditions d’exécution et de l’état actuel du système</strong>.</p>
+<p>À l’opposé, les fonctions qui interagissent directement avec le matériel – comme <code class="docutils literal notranslate"><span class="pre">ecrt_master_receive()</span></code> et <code class="docutils literal notranslate"><span class="pre">ecrt_master_send()</span></code> – prennent <strong>plus de temps</strong> à s'exécuter.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ecrt_master_receive()</span></code> est la <strong>plus lente</strong>. Elle gère une <strong>interruption Ethernet (ISR)</strong> dès l’arrivée des données, analyse les datagrammes reçus, puis copie leur contenu en mémoire.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecrt_master_send()</span></code>, elle, se contente de <strong>construire et envoyer une trame</strong>. Elle est donc environ <strong>quatre fois plus rapide</strong> que la fonction de réception.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Ces différences sont visibles dans le tableau de profilage des fonctions, et montrent l’impact significatif du traitement matériel sur le timing global.</p>
+</div>
+<p><strong>Limites de la fréquence théorique</strong>:</p>
+<p>La fréquence théorique maximale d’exécution des cycles peut atteindre <strong>jusqu’à 100 kHz</strong>, mais elle est limitée en pratique par deux facteurs :</p>
+<ol class="arabic simple">
+<li><p>Le processeur doit continuer à exécuter le <strong>système d’exploitation</strong> entre les cycles temps réel.</p></li>
+<li><p>Les <strong>trames EtherCAT</strong> doivent être entièrement <strong>envoyées et reçues</strong> avant le prochain cycle.</p></li>
+</ol>
+<p>Ces contraintes réduisent la fréquence réelle exploitable, et doivent être prises en compte dans toute évaluation de performances temps réel.</p>
+</section>
+<section id="mesure-des-cycles-du-bus">
+<h2>2. Mesure des cycles du bus<a class="headerlink" href="#mesure-des-cycles-du-bus" title="Lien vers cette rubrique"></a></h2>
+<p>La durée pendant laquelle une trame EtherCAT circule &quot;sur le câble&quot; est un élément fondamental à mesurer pour évaluer les limites de fréquence d’un système temps réel.</p>
+<p>Pour obtenir cette mesure, il faut déterminer précisément <strong>deux instants clés</strong> :</p>
+<ol class="arabic simple">
+<li><p><strong>Le début de la transmission</strong> : moment où le matériel Ethernet commence à envoyer la trame.</p></li>
+<li><p><strong>La fin de la réception</strong> : moment où la trame est totalement reçue par le matériel à l’autre bout.</p></li>
+</ol>
+<p>Cependant, ces instants sont <strong>difficiles à capter avec précision</strong> pour plusieurs raisons :</p>
+<ul class="simple">
+<li><p>Les <strong>interruptions système</strong> sont parfois désactivées pour garantir le déterminisme, ce qui empêche une notification immédiate de l’événement au CPU.</p></li>
+<li><p>Même avec les interruptions activées, il subsiste un <strong>délai inconnu</strong> entre l’événement réel (trame envoyée/reçue) et le traitement de l’interruption.</p></li>
+<li><p>Le <strong>polling</strong> (lecture cyclique d’un registre matériel) serait trop lent ou introduirait un biais dans la mesure.</p></li>
+<li><p>Les événements sont <strong>difficilement repérables</strong> par logiciel sans instrumentation matérielle.</p></li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Astuce</p>
+<dl>
+<dt><strong>Solution recommandée</strong><span class="classifier">utiliser une <strong>mesure électrique</strong> avec des outils comme :</span></dt><dd><ul class="simple">
+<li><p>un oscilloscope numérique,</p></li>
+<li><p>une sonde logique,</p></li>
+<li><p>ou un analyseur réseau (hardware).</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<p>Ces outils permettent d’obtenir des mesures fiables des temps de transit des trames Ethernet dans le réseau.</p>
+<section id="importance-du-cycle-du-bus">
+<h3>Importance du cycle du bus<a class="headerlink" href="#importance-du-cycle-du-bus" title="Lien vers cette rubrique"></a></h3>
+<p>Dans une application temps réel EtherCAT, la <strong>durée du cycle du bus</strong> détermine directement la <strong>fréquence maximale</strong> des échanges.
+Si cette fréquence est trop élevée, les trames envoyées à la fin d’un cycle peuvent ne pas être totalement reçues lorsque le cycle suivant commence.</p>
+<p>Dans ce cas :
+- La fonction <code class="docutils literal notranslate"><span class="pre">ecrt_domain_process()</span></code> détecte que les <strong>nouvelles données ne sont pas arrivées</strong> en vérifiant le <strong>compteur de datagrammes</strong>, qui reste inchangé.
+- Elle <strong>conserve alors les anciennes données</strong> pour éviter d’utiliser des valeurs incomplètes ou corrompues.
+- Le <strong>maître EtherCAT</strong> remet ces datagrammes dans la <strong>file d’envoi</strong> et génère un <strong>avertissement</strong> indiquant que des paquets ont été ignorés.</p>
+</section>
+<section id="conclusion-et-seuils-pratiques">
+<h3>Conclusion et seuils pratiques<a class="headerlink" href="#conclusion-et-seuils-pratiques" title="Lien vers cette rubrique"></a></h3>
+<p>Sur un système à <strong>2.0 GHz</strong>, on atteint typiquement une fréquence de <strong>25 kHz sans perte de trames</strong>.</p>
+<p>Cependant, cette fréquence maximale peut être améliorée en :
+- <strong>Utilisant un matériel réseau plus rapide</strong> (éviter les chipsets comme RealTek, préférer Intel ou compatibles industriels).
+- <strong>Optimisant le traitement des interruptions</strong> avec un <strong>ISR dédié à EtherCAT</strong>, pour réduire la latence de réponse matérielle.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="horloges_distribu%C3%A9es.html" class="btn btn-neutral float-left" title="Écriture d’un code pour la pile EtherCAT Master IgH" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
