@@ -12,5 +12,5 @@ Pile IgH
    :caption: Sommaire
 
    horloges_distribuées
-   Aspects_temporels
+   aspects_temporels
 
