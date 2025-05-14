@@ -49,6 +49,8 @@ html_sidebars = {
     ]
 }
 
+html_baseurl = 'https://manalmrabet.github.io/pile_igh_documentation/'
+
 
 # -- Options for copybutton extension ----------------------------------------
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
